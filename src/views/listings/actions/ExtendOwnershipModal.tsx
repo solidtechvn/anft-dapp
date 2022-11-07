@@ -271,7 +271,7 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
         'sellPrice-is-required',
         t(`anftDapp.listingComponent.extendOwnership.pleaseEnterSellPrice`),
         function (value: number | undefined) {
-          if (!isSellCommercial) {
+          if (!isSellCommercial || modelType === ModalType.OWNERSHIP_EXTENSION) {
             return true;
           }
           return Number(value) >= 0;
@@ -295,7 +295,7 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
         'rentPrice-is-required',
         t(`anftDapp.listingComponent.extendOwnership.pleaseEnterRentPrice`),
         function (value: number | undefined) {
-          if (!isRentCommercial) {
+          if (!isRentCommercial || modelType === ModalType.OWNERSHIP_EXTENSION) {
             return true;
           }
           return Number(value) >= 0;
