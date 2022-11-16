@@ -15,7 +15,7 @@ import {
   CModalTitle,
   CProgress,
   CProgressBar,
-  CRow,
+  CRow
 } from '@coreui/react';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -44,7 +44,7 @@ import {
   insertCommas,
   moneyUnitTranslate,
   returnMaxEndDate,
-  unInsertCommas,
+  unInsertCommas
 } from '../../../shared/casual-helpers';
 import { ToastError, ToastSuccess } from '../../../shared/components/Toast';
 import { CommercialTypes } from '../../../shared/enumeration/comercialType';
@@ -61,7 +61,7 @@ import { fetching as fetchingMiniStage } from '../../mini-stage/miniStages.reduc
 import { getEntity } from '../../productType/category.api';
 import {
   fetching as fetchingCategory,
-  selectEntityById as selectCategoryById,
+  selectEntityById as selectCategoryById
 } from '../../productType/category.reducer';
 import { baseSetterArgs } from '../../transactions/settersMapping';
 import { IProceedTxBody, proceedTransaction } from '../../transactions/transactions.api';
@@ -425,9 +425,6 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
   const handleRiskProgressValue = (days: number): RiskLevel => {
     const percentRegistOnMaxStage = (days / listingData.maximumStage) * 100;
     const riskLevel = successRateForecast(percentRegistOnMaxStage);
-    // if (priceStatus === PriceStatus.HIGH) return mappingSuccessRate[mappingPriceStatus[riskLevel]];
-    // return mappingSuccessRate[riskLevel];
-    // if (priceStatus === PriceStatus.HIGH) return remappingRiskLevel[riskLevel];
     return riskLevel;
   };
 
@@ -445,10 +442,8 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
     [RiskLevel.VERY_LOW]: profitsValue.VERY_HIGH,
   };
 
-  const calculateSellProfit = (price: number, risk: RiskLevel, priceStatus: PriceStatus) => {
-    const riskLevelInx = riskLevelArray.indexOf(risk);
-    const findPrevRisk = risk !== RiskLevel.VERY_HIGH ? riskLevelArray[riskLevelInx + 1] : risk;
-    const profit = mappingSuccessRateToProfits[priceStatus === PriceStatus.HIGH ? findPrevRisk : risk];
+  const calculateSellProfit = (price: number, risk: RiskLevel) => {
+    const profit = mappingSuccessRateToProfits[risk];
     const ownerPrice = listingData.sellPrice;
     const profitPercent = profit / 100;
     const diff = price <= ownerPrice ? 0 : (price - ownerPrice) * profitPercent;
@@ -463,23 +458,12 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
     return diff;
   };
 
-  const calculateProfit = (
-    price: number,
-    risk: RiskLevel,
-    priceStatus: PriceStatus,
-    days: number,
-    commercialTypes: CommercialTypes
-  ) => {
+  const calculateProfit = (price: number, risk: RiskLevel, days: number, commercialTypes: CommercialTypes) => {
     if (commercialTypes === CommercialTypes.SELL) {
-      return calculateSellProfit(price, risk, priceStatus);
+      return calculateSellProfit(price, risk);
     } else {
       return calculateRentProfit(price, days);
     }
-  };
-
-  const calculateProfitPerMonth = (days: number, profit: number) => {
-    const profitPerMonth = (profit * 30) / days;
-    return profitPerMonth;
   };
 
   const checkPriceisGood = (price: number, commercialTypes: CommercialTypes): PriceStatus => {
@@ -510,9 +494,9 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
     return insertCommas(amount);
   };
 
-  const returnSellProfit = (profit: number, dailyPayment: BigNumber | undefined, dateCount: number) => {
+  const returnProfitPreview = (profit: number, dateCount: number, startDate: moment.Moment) => {
     if (!profit) return 0;
-    const totalPayment = (dailyPayment ? Number(convertBnToDecimal(dailyPayment)) : 0) * ANFT_TO_VND_RATIO * dateCount;
+    const totalPayment = Number(calculateExtendPriceByDays(dateCount, startDate)) * ANFT_TO_VND_RATIO;
     return profit - totalPayment;
   };
 
@@ -665,20 +649,18 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                           const rentRiskLevel =
                             values.rentPriceStatus === PriceStatus.HIGH ? findPrevRisk : currRiskLevel;
 
-                            const sellProfit = calculateProfit(
-                              values.sellPrice || 0,
-                              sellRiskLevel,
-                              values.sellPriceStatus,
-                              extendDay,
-                              CommercialTypes.SELL
-                            );
-                            const rentProfit = calculateProfit(
-                              values.rentPrice || 0,
-                              rentRiskLevel,
-                              values.rentPriceStatus,
-                              extendDay,
-                              CommercialTypes.RENT
-                            );
+                          const sellProfit = calculateProfit(
+                            values.sellPrice || 0,
+                            sellRiskLevel,
+                            extendDay,
+                            CommercialTypes.SELL
+                          );
+                          const rentProfit = calculateProfit(
+                            values.rentPrice || 0,
+                            rentRiskLevel,
+                            extendDay,
+                            CommercialTypes.RENT
+                          );
                           try {
                             BigNumber.from(extendDay);
                             const extendDate = moment(startDate).add(
@@ -800,7 +782,6 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                               const profit = calculateProfit(
                                 Number(unInsertCommas(e.currentTarget.value)),
                                 sellRiskLevel,
-                                priceStatus,
                                 values.dateCount,
                                 CommercialTypes.SELL
                               );
@@ -859,7 +840,7 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                           <p className="text-primary text-right m-0">
                             {values.sellProfit
                               ? insertCommas(
-                                  returnSellProfit(Number(values.sellProfit), listing?.dailyPayment, values.dateCount)
+                                  returnProfitPreview(Number(values.sellProfit), values.dateCount, values.startDate)
                                 )
                               : '0'}{' '}
                             VND{' '}
@@ -868,11 +849,7 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                               {values.sellProfit
                                 ? renderAmount(
                                     Number(
-                                      returnSellProfit(
-                                        Number(values.sellProfit),
-                                        listing?.dailyPayment,
-                                        values.dateCount
-                                      )
+                                      returnProfitPreview(Number(values.sellProfit), values.dateCount, values.startDate)
                                     ) / ANFT_TO_VND_RATIO
                                   )
                                 : '0'}{' '}
@@ -917,7 +894,7 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                           <p className="text-primary text-right m-0">
                             {calculateProfitRatio(
                               values.dateCount,
-                              returnSellProfit(Number(values.sellProfit), listing?.dailyPayment, values.dateCount)
+                              returnProfitPreview(Number(values.sellProfit), values.dateCount, values.startDate)
                             )}
                           </p>
                         </CCol>
@@ -956,7 +933,6 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                               const profit = calculateProfit(
                                 Number(unInsertCommas(e.currentTarget.value)),
                                 rentRiskLevel,
-                                priceStatus,
                                 values.dateCount,
                                 CommercialTypes.RENT
                               );
@@ -1014,14 +990,15 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                         <CCol xs={7}>
                           <p className="text-primary text-right m-0">
                             {values.rentProfit
-                              ? insertCommas(calculateProfitPerMonth(values.dateCount, values.rentProfit))
+                              ? insertCommas(returnProfitPreview(Number(values.rentPrice), 30, values.startDate))
                               : '0'}{' '}
                             VND{' '}
                             <small className="text-muted">
                               (
                               {values.rentProfit
                                 ? renderAmount(
-                                    calculateProfitPerMonth(values.dateCount, values.rentProfit) / ANFT_TO_VND_RATIO
+                                    returnProfitPreview(Number(values.rentPrice), 30, values.startDate) /
+                                      ANFT_TO_VND_RATIO
                                   )
                                 : '0'}{' '}
                               ANFT)
@@ -1064,7 +1041,10 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                         </CCol>
                         <CCol xs={8}>
                           <p className="text-primary text-right m-0">
-                            {calculateProfitRatio(values.dateCount, values.rentProfit)}
+                            {calculateProfitRatio(
+                              30,
+                              returnProfitPreview(Number(values.rentPrice), 30, values.startDate)
+                            )}
                           </p>
                         </CCol>
                       </CFormGroup>
