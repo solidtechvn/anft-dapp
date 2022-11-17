@@ -15,12 +15,11 @@ import {
   CLabel,
   CLink,
   CRow,
-  CTooltip,
+  CTooltip
 } from '@coreui/react';
 import { faInfoCircle, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Formik, FormikProps } from 'formik';
-import { values } from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -50,7 +49,7 @@ import {
   getContractWithSigner,
   getProviderLogin,
   getSigner,
-  getTokenBalance,
+  getTokenBalance
 } from '../views/wallet/wallet.api';
 import { resetSigner, softReset as walletSoftReset } from '../views/wallet/wallet.reducer';
 import { toggleSidebar } from './reducer';
