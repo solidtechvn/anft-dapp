@@ -3,6 +3,8 @@ export enum ExchangeType {
   SECONDARY = 'SECONDARY',
 }
 
+export const exchangeTypeArray: ExchangeType[] = [ExchangeType.PRIMARY, ExchangeType.SECONDARY];
+
 export const mapExchangeTypeBadge: { [key in ExchangeType]: string } = {
   [ExchangeType.PRIMARY]: 'primary',
   [ExchangeType.SECONDARY]: 'success',

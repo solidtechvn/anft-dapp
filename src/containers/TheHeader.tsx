@@ -15,9 +15,7 @@ import {
   CLabel,
   CLink,
   CRow,
-  CSelect,
-  CSubheader,
-  CTooltip,
+  CTooltip
 } from '@coreui/react';
 import { faInfoCircle, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -26,81 +24,50 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
+import Select from 'react-select';
 import anftLogo from '../assets/img/ANT_logo_main_color.png';
 import Logo from '../assets/img/logo.png';
 import { TOKEN_INSTANCE } from '../shared/blockchain-helpers';
-import { formatBNToken, getEllipsisTxt } from '../shared/casual-helpers';
+import { formatBNToken, getEllipsisTxt, moneyUnitTranslate } from '../shared/casual-helpers';
+import { customStyles, mapAreaRange, mapFeeRange } from '../shared/components/FilterComponent';
 import { ToastError, ToastInfo } from '../shared/components/Toast';
+import { CommercialTypes } from '../shared/enumeration/comercialType';
 import { Language } from '../shared/enumeration/language';
+import { UnitRange, unitRangeArray } from '../shared/enumeration/unitRange';
 import useDeviceDetect from '../shared/hooks/useDeviceDetect';
+import { ISelectOption } from '../shared/models/selectOption.model';
 import { RootState } from '../shared/reducers';
-import { getEntities } from '../views/assets/assets.api';
 import {
-  fetchingEntities,
   setFilterState as setStoredFilterState,
-  softReset as assetsSoftReset,
+  softReset as assetsSoftReset
 } from '../views/assets/assets.reducer';
 import { logout, setLoginModalVisible } from '../views/auth/auth.reducer';
-import { IAssetFilter } from '../views/listings/Listings';
+import { IAssetFilter, initialFilterValues } from '../views/listings/Listings';
+import { getEntities as getListingTypes } from '../views/productType/category.api';
+import { categorySelectors, fetching as fetchingListingType } from '../views/productType/category.reducer';
+import { getDistrictsEntites, getProvincesEntites } from '../views/provinces/provinces.api';
 import { softReset as transactionsSoftReset } from '../views/transactions/transactions.reducer';
 import {
   getAddress,
   getContractWithSigner,
   getProviderLogin,
   getSigner,
-  getTokenBalance,
+  getTokenBalance
 } from '../views/wallet/wallet.api';
 import { resetSigner, softReset as walletSoftReset } from '../views/wallet/wallet.reducer';
 import { toggleSidebar } from './reducer';
 
-interface IDataFilter {
-  value: string;
-  label: string;
-}
-
-const dataFilterDemo: IDataFilter[] = [
-  {
-    value: '1',
-    label: 'Action',
-  },
-  {
-    value: '2',
-    label: 'Another action',
-  },
-  {
-    value: '3',
-    label: 'Something else here',
-  },
-];
-
-const initialValues: IAssetFilter = {
-  page: 0,
-  size: 12,
-  sort: 'createdDate,desc',
-  sellStatus: 'YET_SOLD,LOCKED',
+export const returnSelectOptions = (array: ISelectOption[], label: string) => {
+  const defaultOption: ISelectOption = {
+    value: undefined,
+    label: label,
+  };
+  return [defaultOption, ...array];
 };
-
-type TListingsFilter = {
-  [key in keyof Partial<IAssetFilter>]: IDataFilter[];
-};
-
-const listingsFilter: TListingsFilter = {
-  city: dataFilterDemo,
-  dist: dataFilterDemo,
-  classify: dataFilterDemo,
-  segment: dataFilterDemo,
-  area: dataFilterDemo,
-  orientation: dataFilterDemo,
-  dailyPayment: dataFilterDemo,
-  quality: dataFilterDemo,
-};
-
-const listingsFilterKeys = Object.keys(listingsFilter) as Array<keyof TListingsFilter>;
 
 const TheHeader = () => {
   const dispatch = useDispatch();
   const location = useLocation().pathname;
-
   const { isMobile } = useDeviceDetect();
   const isDashboardView = location.includes('/listings');
   const formikRef = useRef<FormikProps<IAssetFilter>>(null);
@@ -115,15 +82,17 @@ const TheHeader = () => {
     errorMessage: walletErrorMessage,
   } = useSelector((state: RootState) => state.wallet);
   const { user } = useSelector((state: RootState) => state.authentication);
+  const { provincesEntities, districtsEntities } = useSelector((state: RootState) => state.provinces);
   const { initialState: assetsInitialState } = useSelector((state: RootState) => state.assets);
-  const { errorMessage: assetErrorMessage } = assetsInitialState;
-
+  const { errorMessage: assetErrorMessage, filterState } = assetsInitialState;
   const { errorMessage: transactionErrorMessage } = useSelector((state: RootState) => state.transactions);
-
   const containerState = useSelector((state: RootState) => state.container);
   const { sidebarShow } = containerState;
 
   const { t, i18n } = useTranslation();
+
+  const listingTypes = useSelector(categorySelectors.selectAll);
+  const [chosenProvince, setChosenProvince] = useState<string>('');
 
   const onConnectWallet = () => {
     if (signerAddress) return dispatch(resetSigner());
@@ -209,6 +178,110 @@ const TheHeader = () => {
   };
 
   const [isDropdownFilterShowing, setIsDropdownFilterShowing] = useState<boolean>(false);
+
+  useEffect(() => {
+    dispatch(fetchingListingType());
+    dispatch(getListingTypes());
+    dispatch(getProvincesEntites({ country: 'VN' }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (chosenProvince) {
+      dispatch(getDistrictsEntites({ province: chosenProvince }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chosenProvince]);
+
+  const multipleProvinceOption: ISelectOption[] = provincesEntities.map((province) => ({
+    value: province?.code,
+    label: province?.name,
+  }));
+
+  const multipleDistrictOption: ISelectOption[] = districtsEntities.length
+    ? districtsEntities.map((district) => ({
+        value: district?.code,
+        label: district?.name,
+      }))
+    : [];
+
+  const multipleListingTypeOption: ISelectOption[] = listingTypes?.length
+    ? listingTypes.map((type) => ({
+        value: type?.id,
+        label: type?.name,
+      }))
+    : [];
+
+  const commercialTypesOptions: ISelectOption[] = [
+    { value: undefined, label: t(`anftDapp.headerComponent.filter.commercialTypes`) },
+    { value: CommercialTypes.SELL, label: t(`anftDapp.listingComponent.methods.SELL`) },
+    { value: CommercialTypes.RENT, label: t(`anftDapp.listingComponent.methods.RENT`) },
+    { value: 'SELL,RENT', label: t(`anftDapp.listingComponent.methods.SELL_RENT`) },
+  ];
+
+  const qualityOptions: ISelectOption[] = [
+    { value: undefined, label: t(`anftDapp.headerComponent.filter.quality`) },
+    { value: 'A', label: 'A' },
+    { value: 'B', label: 'B' },
+    { value: 'C', label: 'C' },
+    { value: 'D', label: 'D' },
+  ];
+
+  const orientationOptions: ISelectOption[] = [
+    { value: undefined, label: t(`anftDapp.headerComponent.filter.orientation`) },
+    { value: 'east', label: t(`anftDapp.headerComponent.filter.east`) },
+    { value: 'west', label: t(`anftDapp.headerComponent.filter.west`) },
+    { value: 'south', label: t(`anftDapp.headerComponent.filter.south`) },
+    { value: 'north', label: t(`anftDapp.headerComponent.filter.north`) },
+    { value: 'northEast', label: t(`anftDapp.headerComponent.filter.northEast`) },
+    { value: 'northWest', label: t(`anftDapp.headerComponent.filter.northWest`) },
+    { value: 'southWest', label: t(`anftDapp.headerComponent.filter.southWest`) },
+    { value: 'southEast', label: t(`anftDapp.headerComponent.filter.southEast`) },
+  ];
+
+  const livingRoomOptions: ISelectOption[] = [
+    { value: undefined, label: t(`anftDapp.headerComponent.filter.livingroom`) },
+    { value: '1', label: '1' },
+    { value: '2', label: '2' },
+    { value: '3', label: '3' },
+  ];
+
+  const bedRoomOptions: ISelectOption[] = [
+    { value: undefined, label: t(`anftDapp.headerComponent.filter.bedroom`) },
+    { value: '1', label: '1' },
+    { value: '2', label: '2' },
+    { value: '3', label: '3' },
+    { value: '4', label: '4' },
+    { value: '5', label: '5' },
+  ];
+
+  const feeOptions = unitRangeArray.map((unit) => ({
+    value: unit,
+    label:
+      unit === UnitRange.EXTREMELY_LOW
+        ? `${t('anftDapp.global.moneyUnit.under')} ${Number(moneyUnitTranslate(mapFeeRange[unit].feeLte).number)} ${t(
+            `anftDapp.global.moneyUnit.${moneyUnitTranslate(mapFeeRange[unit].feeLte).unit}`
+          )}`
+        : `${Number(moneyUnitTranslate(mapFeeRange[unit].feeGte).number)} ${t(
+            `anftDapp.global.moneyUnit.${moneyUnitTranslate(mapFeeRange[unit].feeGte).unit}`
+          )} - ${Number(moneyUnitTranslate(mapFeeRange[unit].feeLte).number)} ${t(
+            `anftDapp.global.moneyUnit.${moneyUnitTranslate(mapFeeRange[unit].feeLte).unit}`
+          )}`,
+  }));
+
+  const areaOptions: ISelectOption[] = unitRangeArray.map((unit) => ({
+    value: unit,
+    label:
+      unit === UnitRange.EXTREMELY_LOW
+        ? `${t('anftDapp.global.moneyUnit.under')} ${Number(mapAreaRange[unit].areaLte)} m2`
+        : `${Number(mapAreaRange[unit].areaGte)} m2 - ${Number(mapAreaRange[unit].areaLte)} m2`,
+  }));
+
+  const handleReset = () => {
+    formikRef.current?.resetForm();
+    dispatch(setStoredFilterState(initialFilterValues))
+    setIsDropdownFilterShowing(false);
+  };
 
   return (
     <>
@@ -345,16 +418,14 @@ const TheHeader = () => {
                 >
                   <CIcon name="cil-filter" size="xl" />
                 </CDropdownToggle>
-                <CDropdownMenu className="dr-menu-filter m-0" show={isDropdownFilterShowing}>
+                <CDropdownMenu className="dr-menu-filter m-0 w-100" show={isDropdownFilterShowing}>
                   <Formik<IAssetFilter>
                     innerRef={formikRef}
-                    initialValues={initialValues}
+                    initialValues={{ ...initialFilterValues, ...filterState }}
                     onSubmit={(rawValues) => {
                       const values = handleRawValues(rawValues);
                       try {
                         if (!provider) return;
-                        dispatch(fetchingEntities());
-                        dispatch(getEntities({ fields: values, provider }));
                         dispatch(setStoredFilterState(values));
                         setIsDropdownFilterShowing(false);
                       } catch (error) {
@@ -363,35 +434,246 @@ const TheHeader = () => {
                       }
                     }}
                   >
-                    {({ values, handleChange, handleSubmit, resetForm }) => (
+                    {({ values, handleChange, handleSubmit, setFieldValue }) => (
                       <CForm onSubmit={handleSubmit}>
                         <div className="modal-title-style d-flex justify-content-end px-3 py-2">
                           <CLabel className="m-auto pl-3"> {t('anftDapp.headerComponent.filter.filter')}</CLabel>
-                          <CButton className="p-0 text-primary" onClick={resetForm}>
+                          <CButton className="p-0 text-primary" onClick={handleReset}>
                             <FontAwesomeIcon icon={faSyncAlt} size="lg" />
                           </CButton>
                         </div>
-                        <CRow className="mx-2">
-                          {listingsFilterKeys.map((e) => (
-                            <CCol xs={6} md={4} className="px-2 text-center py-2" key={`listings-key-${e}`}>
-                              <CSelect
-                                className="btn-radius-50 text-dark px-2 content-title"
-                                onChange={handleChange}
-                                value={values[e] || ''}
-                                id={e}
-                                name={e}
-                                disabled
-                              >
-                                <option value="">{t(`anftDapp.headerComponent.filter.${e}`)}</option>
-                                {listingsFilter[e]?.map((o, i) => (
-                                  <option value={o.value} key={`${e}-key-${i}`}>
-                                    {o.label}
-                                  </option>
-                                ))}
-                              </CSelect>
-                            </CCol>
-                          ))}
-                          <CCol xs={12} md={4} className="py-3 px-4 d-flex align-items-end">
+                        <CRow className="mx-2" onClick={(e) => e.nativeEvent.stopImmediatePropagation()}>
+                          <CCol xs={6} md={4} className="px-2 text-center py-2">
+                            <Select
+                              key={`select-${JSON.stringify(multipleProvinceOption)}`}
+                              className="filter-search-select btn-radius-50"
+                              options={returnSelectOptions(
+                                multipleProvinceOption,
+                                t(`anftDapp.headerComponent.filter.provinceCode`)
+                              )}
+                              isMulti={false}
+                              isSearchable={true}
+                              value={
+                                returnSelectOptions(
+                                  multipleProvinceOption,
+                                  t(`anftDapp.headerComponent.filter.provinceCode`)
+                                )?.find((item) => item.value === values.provinceCode) as any
+                              }
+                              placeholder={t(`anftDapp.headerComponent.filter.provinceCode`)}
+                              styles={customStyles}
+                              onChange={(selected: any) => {
+                                if (selected) {
+                                  setChosenProvince(selected.value);
+                                  setFieldValue('provinceCode', selected.value);
+                                  setFieldValue('districtCode', undefined);
+                                }
+                              }}
+                              noOptionsMessage={() => t('anftDapp.global.noItemText')}
+                            />
+                          </CCol>
+
+                          <CCol xs={6} md={4} className="px-2 text-center py-2">
+                            <Select
+                              key={`select-${JSON.stringify(multipleDistrictOption)}`}
+                              className="filter-search-select btn-radius-50"
+                              options={returnSelectOptions(
+                                multipleDistrictOption,
+                                t(`anftDapp.headerComponent.filter.districtCode`)
+                              )}
+                              isMulti={false}
+                              isSearchable={true}
+                              value={
+                                returnSelectOptions(
+                                  multipleDistrictOption,
+                                  t(`anftDapp.headerComponent.filter.districtCode`)
+                                )?.find((item) => item.value === values.districtCode) as any
+                              }
+                              placeholder={t(`anftDapp.headerComponent.filter.districtCode`)}
+                              styles={customStyles}
+                              onChange={(selected: any) => {
+                                if (selected) {
+                                  setFieldValue('districtCode', selected.value);
+                                }
+                              }}
+                              noOptionsMessage={() => t('anftDapp.global.noItemText')}
+                            />
+                          </CCol>
+
+                          <CCol xs={6} md={4} className="px-2 text-center py-2">
+                            <Select
+                              key={`select-${JSON.stringify(multipleListingTypeOption)}`}
+                              className="filter-search-select btn-radius-50"
+                              options={returnSelectOptions(
+                                multipleListingTypeOption,
+                                t(`anftDapp.headerComponent.filter.type`)
+                              )}
+                              isMulti={false}
+                              isSearchable={true}
+                              value={
+                                returnSelectOptions(
+                                  multipleListingTypeOption,
+                                  t(`anftDapp.headerComponent.filter.type`)
+                                )?.find((item) => item.value === values.typeIds) as any
+                              }
+                              placeholder={t(`anftDapp.headerComponent.filter.type`)}
+                              styles={customStyles}
+                              onChange={(selected: any) => {
+                                if (selected) {
+                                  setFieldValue('typeIds', selected.value);
+                                }
+                              }}
+                              noOptionsMessage={() => t('anftDapp.global.noItemText')}
+                            />
+                          </CCol>
+
+                          <CCol xs={6} md={4} className="px-2 text-center py-2">
+                            <Select
+                              className="filter-search-select btn-radius-50"
+                              options={commercialTypesOptions}
+                              isMulti={false}
+                              isSearchable={false}
+                              placeholder={t(`anftDapp.headerComponent.filter.commercialTypes`)}
+                              value={
+                                commercialTypesOptions.find((item) => item.value === values.commercialTypes) as any
+                              }
+                              styles={customStyles}
+                              onChange={(selected: ISelectOption) => {
+                                if (selected) {
+                                  setFieldValue('commercialTypes', selected?.value);
+                                }
+                              }}
+                              noOptionsMessage={() => t('anftDapp.global.noItemText')}
+                            />
+                          </CCol>
+
+                          <CCol xs={6} md={4} className="px-2 text-center py-2">
+                            <Select
+                              className="filter-search-select btn-radius-50"
+                              options={returnSelectOptions(
+                                feeOptions,
+                                t(`anftDapp.headerComponent.filter.miningFeeRange`)
+                              )}
+                              isMulti={false}
+                              isSearchable={false}
+                              placeholder={t(`anftDapp.headerComponent.filter.miningFeeRange`)}
+                              value={
+                                returnSelectOptions(
+                                  feeOptions,
+                                  t(`anftDapp.headerComponent.filter.miningFeeRange`)
+                                )?.find((item) => item.value === values.miningFeeRange) as any
+                              }
+                              styles={customStyles}
+                              onChange={(selected: ISelectOption) => {
+                                setFieldValue('miningFeeRange', selected?.value);
+                                if (selected?.value) {
+                                  const { feeGte, feeLte } = mapFeeRange[selected.value as UnitRange];
+                                  setFieldValue('feeGte', feeGte);
+                                  setFieldValue('feeLte', feeLte);
+                                } else {
+                                  setFieldValue('feeGte', undefined);
+                                  setFieldValue('feeLte', undefined);
+                                }
+                              }}
+                              noOptionsMessage={() => t('anftDapp.global.noItemText')}
+                            />
+                          </CCol>
+                          <CCol xs={6} md={4} className="px-2 text-center py-2">
+                            <Select
+                              className="filter-search-select btn-radius-50"
+                              options={returnSelectOptions(areaOptions, t(`anftDapp.headerComponent.filter.areaRange`))}
+                              isMulti={false}
+                              isSearchable={false}
+                              placeholder={t(`anftDapp.headerComponent.filter.areaRange`)}
+                              value={
+                                returnSelectOptions(areaOptions, t(`anftDapp.headerComponent.filter.areaRange`))?.find(
+                                  (item) => item.value === values.areaRange
+                                ) as any
+                              }
+                              styles={customStyles}
+                              onChange={(selected: ISelectOption) => {
+                                setFieldValue('areaRange', selected?.value);
+                                if (selected?.value) {
+                                  const { areaGte, areaLte } = mapAreaRange[selected.value as UnitRange];
+                                  setFieldValue('areaGte', areaGte);
+                                  setFieldValue('areaLte', areaLte);
+                                } else {
+                                  setFieldValue('areaGte', undefined);
+                                  setFieldValue('areaLte', undefined);
+                                }
+                              }}
+                              noOptionsMessage={() => t('anftDapp.global.noItemText')}
+                            />
+                          </CCol>
+                          <CCol xs={6} md={4} className="px-2 text-center py-2">
+                            <Select
+                              className="filter-search-select btn-radius-50"
+                              options={qualityOptions}
+                              isMulti={false}
+                              isSearchable={false}
+                              placeholder={t(`anftDapp.headerComponent.filter.quality`)}
+                              value={qualityOptions.find((item) => item.value === values.quality) as any}
+                              styles={customStyles}
+                              onChange={(selected: ISelectOption) => {
+                                if (selected) {
+                                  setFieldValue('quality', selected?.value);
+                                }
+                              }}
+                              noOptionsMessage={() => t('anftDapp.global.noItemText')}
+                            />
+                          </CCol>
+                          <CCol xs={6} md={4} className="px-2 text-center py-2">
+                            <Select
+                              className="filter-search-select btn-radius-50"
+                              options={orientationOptions}
+                              isMulti={false}
+                              isSearchable={false}
+                              placeholder={t(`anftDapp.headerComponent.filter.orientation`)}
+                              value={orientationOptions.find((item) => item.value === values.orientation) as any}
+                              styles={customStyles}
+                              onChange={(selected: ISelectOption) => {
+                                if (selected) {
+                                  setFieldValue('orientation', selected?.value);
+                                }
+                              }}
+                              noOptionsMessage={() => t('anftDapp.global.noItemText')}
+                            />
+                          </CCol>
+                          <CCol xs={6} md={4} className="px-2 text-center py-2">
+                            <Select
+                              className="filter-search-select btn-radius-50"
+                              options={livingRoomOptions}
+                              isMulti={false}
+                              isSearchable={false}
+                              placeholder={t(`anftDapp.headerComponent.filter.livingroom`)}
+                              value={livingRoomOptions.find((item) => item.value === values.livingroom) as any}
+                              styles={customStyles}
+                              onChange={(selected: ISelectOption) => {
+                                if (selected) {
+                                  setFieldValue('livingroom', selected?.value);
+                                }
+                              }}
+                              noOptionsMessage={() => t('anftDapp.global.noItemText')}
+                            />
+                          </CCol>
+                          <CCol xs={6} md={4} className="px-2 text-center py-2">
+                            <Select
+                              className="filter-search-select btn-radius-50"
+                              options={bedRoomOptions}
+                              isMulti={false}
+                              isSearchable={false}
+                              placeholder={t(`anftDapp.headerComponent.filter.bedroom`)}
+                              value={bedRoomOptions.find((item) => item.value === values.bedroom) as any}
+                              styles={customStyles}
+                              onChange={(selected: ISelectOption) => {
+                                if (selected) {
+                                  setFieldValue('bedroom', selected?.value);
+                                }
+                              }}
+                              noOptionsMessage={() => t('anftDapp.global.noItemText')}
+                            />
+                          </CCol>
+
+                          <CCol xs={12} md={4} className="py-3 d-flex align-items-end">
                             <CInputCheckbox
                               id="owner"
                               name="owner"
@@ -406,7 +688,7 @@ const TheHeader = () => {
                             </CLabel>
                           </CCol>
                           <CCol xs={12} className="d-flex justify-content-center my-2">
-                            <CButton className="btn btn-primary btn-radius-50" type="submit">
+                            <CButton className="btn-radius-50 text-anft-gradiant text-white" type="submit">
                               {t('anftDapp.headerComponent.filter.apply')}
                             </CButton>
                           </CCol>
@@ -420,7 +702,7 @@ const TheHeader = () => {
           </CHeaderNav>
         </div>
       </CHeader>
-      <CSubheader
+      {/* <CSubheader
         className={`${isDashboardView ? 'd-none' : 'd-none'} sub-header mt-2 justify-content-center align-items-center`}
       >
         <CRow className="w-100 p-1">
@@ -460,7 +742,7 @@ const TheHeader = () => {
             </CSelect>
           </CCol>
         </CRow>
-      </CSubheader>
+      </CSubheader> */}
     </>
   );
 };

@@ -19,7 +19,8 @@ import { formatBNToken, includeMultiple, insertCommas, returnTheFirstImage } fro
 import FilterComponent from '../../shared/components/FilterComponent';
 import Loading from '../../shared/components/Loading';
 import { CommercialTypes } from '../../shared/enumeration/comercialType';
-import { mapExchangeTypeBadge } from '../../shared/enumeration/exchangeType';
+import { exchangeTypeArray, mapExchangeTypeBadge } from '../../shared/enumeration/exchangeType';
+import { UnitRange } from '../../shared/enumeration/unitRange';
 import useDeviceDetect from '../../shared/hooks/useDeviceDetect';
 import useWindowDimensions from '../../shared/hooks/useWindowDimensions';
 import { IAsset } from '../../shared/models/assets.model';
@@ -27,37 +28,39 @@ import { IParams } from '../../shared/models/base.model';
 import { RootState } from '../../shared/reducers';
 import { getEntities } from '../assets/assets.api';
 import { assetsSelectors, fetchingEntities, setFilterState as setStoredFilterState } from '../assets/assets.reducer';
-import { getEntities as getListingTypes } from '../productType/category.api';
-import { fetching as fetchingListingType } from '../productType/category.reducer';
-import { getProvincesEntites } from '../provinces/provinces.api';
 import './index.scss';
 import { IListingParams } from './Listing';
 
 export interface IAssetFilter extends IParams {
   owner?: string;
-  city?: string;
-  dist?: string;
-  classify?: string;
-  segment?: string;
-  area?: string;
+  provinceCode?: string;
+  districtCode?: string;
+  typeIds?: string;
+  commercialTypes?: CommercialTypes;
+  areaGte?: string;
+  areaLte?: string;
+  areaRange?: UnitRange;
   orientation?: string;
-  dailyPayment?: number;
+  feeGte?: string;
+  feeLte?: string;
+  miningFeeRange?: UnitRange;
   quality?: string;
   bedroom?: number;
   livingroom?: number;
-  ownershipStatus?: string;
   sellStatus: string;
+  level: string;
 }
 
 interface IViewComponent {
   listing: IAsset;
 }
 
-const initialFilterState: IAssetFilter = {
+export const initialFilterValues: IAssetFilter = {
   page: 0,
   size: 12,
   sort: 'createdDate,desc',
   sellStatus: 'YET_SOLD,LOCKED',
+  level: exchangeTypeArray.join(','),
 };
 
 const hideFilterComponentView = ['activity-logs', 'register', 'workers-list'];
@@ -77,7 +80,7 @@ const Listings = () => {
 
   const { t } = useTranslation();
 
-  const [filterState, setFilterState] = useState<IAssetFilter>(storedFilterState || initialFilterState);
+  const [filterState, setFilterState] = useState<IAssetFilter>(storedFilterState || initialFilterValues);
 
   const totalPages = Math.ceil(totalItems / filterState.size);
 
@@ -87,6 +90,14 @@ const Listings = () => {
       setFilterState({ ...filterState, page: page - 1 });
     }
   };
+
+  useEffect(() => {
+    if (storedFilterState) {
+      setFilterState(storedFilterState);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(storedFilterState)]);
+
   useEffect(() => {
     if (!provider) return;
     dispatch(fetchingEntities());
@@ -94,13 +105,6 @@ const Listings = () => {
     dispatch(setStoredFilterState(filterState));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(filterState), signerAddress]);
-
-  useEffect(() => {
-    dispatch(fetchingListingType());
-    dispatch(getListingTypes());
-    dispatch(getProvincesEntites({ country: 'VN' }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const onRedirecting = (path: string) => {
     return () => {
@@ -205,7 +209,8 @@ const Listings = () => {
               <CIcon name="cil-tag" className="text-warning" /> {listing.type.name}
             </h6>
             <h6 className="mb-0">
-              <CIcon name="cil-list" className="text-primary" /> {t(`anftDapp.listingComponent.methods.${getComercialTypesName(listing)}`)}
+              <CIcon name="cil-list" className="text-primary" />{' '}
+              {t(`anftDapp.listingComponent.methods.${getComercialTypesName(listing)}`)}
             </h6>
           </CCardBody>
         </CCard>

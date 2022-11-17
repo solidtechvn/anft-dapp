@@ -78,12 +78,6 @@ const Listing = (props: IListingProps) => {
                 <CIcon name="cil-history" /> {t('anftDapp.listingComponent.activityLogs')}
               </CLink>
             </CCol>
-            {/* <CCol xs={12}>
-              <CLabel className="text-primary content-title mt-3">{t('anftDapp.listingComponent.moreListing')}</CLabel>
-            </CCol> */}
-            {/* <CCol xs={12} className="px-0">
-            <Listings />
-          </CCol> */}
           </CRow>
         </CCol>
         <CCol xs={12} lg={`${isMobile ? '12' : '4'}`} className="p-0">
