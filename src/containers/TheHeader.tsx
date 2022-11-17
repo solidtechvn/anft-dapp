@@ -15,11 +15,12 @@ import {
   CLabel,
   CLink,
   CRow,
-  CTooltip
+  CTooltip,
 } from '@coreui/react';
 import { faInfoCircle, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Formik, FormikProps } from 'formik';
+import { values } from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -37,10 +38,7 @@ import { UnitRange, unitRangeArray } from '../shared/enumeration/unitRange';
 import useDeviceDetect from '../shared/hooks/useDeviceDetect';
 import { ISelectOption } from '../shared/models/selectOption.model';
 import { RootState } from '../shared/reducers';
-import {
-  setFilterState as setStoredFilterState,
-  softReset as assetsSoftReset
-} from '../views/assets/assets.reducer';
+import { setFilterState as setStoredFilterState, softReset as assetsSoftReset } from '../views/assets/assets.reducer';
 import { logout, setLoginModalVisible } from '../views/auth/auth.reducer';
 import { IAssetFilter, initialFilterValues } from '../views/listings/Listings';
 import { getEntities as getListingTypes } from '../views/productType/category.api';
@@ -52,7 +50,7 @@ import {
   getContractWithSigner,
   getProviderLogin,
   getSigner,
-  getTokenBalance
+  getTokenBalance,
 } from '../views/wallet/wallet.api';
 import { resetSigner, softReset as walletSoftReset } from '../views/wallet/wallet.reducer';
 import { toggleSidebar } from './reducer';
@@ -278,8 +276,8 @@ const TheHeader = () => {
   }));
 
   const handleReset = () => {
-    formikRef.current?.resetForm();
-    dispatch(setStoredFilterState(initialFilterValues))
+    formikRef.current?.resetForm({ values: initialFilterValues });
+    dispatch(setStoredFilterState(initialFilterValues));
     setIsDropdownFilterShowing(false);
   };
 

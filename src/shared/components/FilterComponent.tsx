@@ -189,8 +189,8 @@ const FilterComponent = () => {
     : [];
 
   const handleReset = () => {
-    formikRef.current?.resetForm();
-    dispatch(setStoredFilterState(initialFilterValues))
+    formikRef.current?.resetForm({ values: initialFilterValues });
+    dispatch(setStoredFilterState(initialFilterValues));
   };
 
   useEffect(() => {
