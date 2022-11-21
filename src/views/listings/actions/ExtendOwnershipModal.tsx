@@ -15,7 +15,7 @@ import {
   CModalTitle,
   CProgress,
   CProgressBar,
-  CRow
+  CRow,
 } from '@coreui/react';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -44,7 +44,7 @@ import {
   insertCommas,
   moneyUnitTranslate,
   returnMaxEndDate,
-  unInsertCommas
+  unInsertCommas,
 } from '../../../shared/casual-helpers';
 import { ToastError, ToastSuccess } from '../../../shared/components/Toast';
 import { CommercialTypes } from '../../../shared/enumeration/comercialType';
@@ -61,7 +61,7 @@ import { fetching as fetchingMiniStage } from '../../mini-stage/miniStages.reduc
 import { getEntity } from '../../productType/category.api';
 import {
   fetching as fetchingCategory,
-  selectEntityById as selectCategoryById
+  selectEntityById as selectCategoryById,
 } from '../../productType/category.reducer';
 import { baseSetterArgs } from '../../transactions/settersMapping';
 import { IProceedTxBody, proceedTransaction } from '../../transactions/transactions.api';
@@ -280,15 +280,11 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
       .typeError(t(`anftDapp.listingComponent.extendOwnership.sellPriceInvalid`))
       .min(
         listing?.minPrice || 1,
-        `${t(`anftDapp.listingComponent.extendOwnership.sellPriceMustGreaterThanOrEqualToMinPrice`)}: ${
-          listing?.minPrice ? insertCommas(listing.minPrice) : 1
-        } VND`
+        t(`anftDapp.listingComponent.extendOwnership.sellPriceMustGreaterThanOrEqualToMinPrice`)
       )
       .max(
         listing?.maxPrice || 1,
-        `${t(`anftDapp.listingComponent.extendOwnership.sellPriceMustLessThanOrEqualToMaxPrice`)}: ${
-          listing?.maxPrice ? insertCommas(listing.maxPrice) : 1
-        } VND`
+        t(`anftDapp.listingComponent.extendOwnership.sellPriceMustLessThanOrEqualToMaxPrice`)
       ),
     rentPrice: Yup.number()
       .test(
@@ -304,15 +300,11 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
       .typeError(t(`anftDapp.listingComponent.extendOwnership.rentPriceInvalid`))
       .min(
         listing?.minRentCost || 1,
-        `${t(`anftDapp.listingComponent.extendOwnership.rentPriceMustGreaterThanOrEqualToMinRentCost`)}: ${
-          listing?.minRentCost ? insertCommas(listing.minRentCost) : 1
-        } VND`
+        t(`anftDapp.listingComponent.extendOwnership.rentPriceMustGreaterThanOrEqualToMinRentCost`)
       )
       .max(
         listing?.maxRentCost || 1,
-        `${t(`anftDapp.listingComponent.extendOwnership.rentPriceMustLessThanOrEqualToMaxRentCost`)}: ${
-          listing?.maxRentCost ? insertCommas(listing.maxRentCost) : 1
-        } VND`
+        t(`anftDapp.listingComponent.extendOwnership.rentPriceMustLessThanOrEqualToMaxRentCost`)
       ),
   });
 
