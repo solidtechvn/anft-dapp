@@ -35,6 +35,7 @@ import {
   calculateSpendingFromSecond,
   checkDateRange,
   checkOwnershipAboutToExpire,
+  checkOwnershipExpired,
   convertBnToDecimal,
   convertDecimalToBn,
   convertUnixToDate,
@@ -146,6 +147,20 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
 
   const expiredLicenseDate = moment(listing?.licenseDate).add(listing?.licensePeriod, 'year');
 
+  const isOwnershipExpired = (function () {
+    if (!listing?.ownership || !listing.owner) return false;
+    const viewerIsOwner = signerAddress === listing.owner;
+    const ownershipExpired = checkOwnershipExpired(listing.ownership.toNumber());
+    return viewerIsOwner && ownershipExpired;
+  })();
+
+  const shouldDisplayUpdateBusinessPrice = (commercialType: CommercialTypes) => {
+    const isRegisterModal = modelType === ModalType.OWNERSHIP_REGISTER;
+    const isListingIncludesCommercialType =
+      commercialType === CommercialTypes.SELL ? isSellCommercial : isRentCommercial;
+    return isListingIncludesCommercialType && (isRegisterModal || isOwnershipExpired);
+  };
+
   const closeModal = () => {
     setVisibility(false);
   };
@@ -162,8 +177,10 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
 
   useEffect(() => {
     if (submitted && updatePriceBody) {
-      if (modelType === ModalType.OWNERSHIP_REGISTER) {
-        ToastSuccess(t('anftDapp.listingComponent.extendOwnership.registerOwnershipSuccess'));
+      if (modelType === ModalType.OWNERSHIP_REGISTER || isOwnershipExpired) {
+        if (modelType === ModalType.OWNERSHIP_REGISTER) {
+          ToastSuccess(t('anftDapp.listingComponent.extendOwnership.registerOwnershipSuccess'));
+        }
         dispatch(setLoginModalVisible(!user));
         dispatch(storeBusinessPrice(updatePriceBody));
       }
@@ -271,7 +288,7 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
         'sellPrice-is-required',
         t(`anftDapp.listingComponent.extendOwnership.pleaseEnterSellPrice`),
         function (value: number | undefined) {
-          if (!isSellCommercial || modelType === ModalType.OWNERSHIP_EXTENSION) {
+          if (!isSellCommercial || (modelType === ModalType.OWNERSHIP_EXTENSION && !isOwnershipExpired)) {
             return true;
           }
           return Number(value) >= 0;
@@ -291,7 +308,7 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
         'rentPrice-is-required',
         t(`anftDapp.listingComponent.extendOwnership.pleaseEnterRentPrice`),
         function (value: number | undefined) {
-          if (!isRentCommercial || modelType === ModalType.OWNERSHIP_EXTENSION) {
+          if (!isRentCommercial || (modelType === ModalType.OWNERSHIP_EXTENSION && !isOwnershipExpired)) {
             return true;
           }
           return Number(value) >= 0;
@@ -695,7 +712,7 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                         {errors.dateCount}
                       </CInvalidFeedback>
                       <CFormText>
-                        {modelType === ModalType.OWNERSHIP_REGISTER || !listing?.ownership
+                        {modelType === ModalType.OWNERSHIP_REGISTER || !listing?.ownership || isOwnershipExpired
                           ? t('anftDapp.listingComponent.extendOwnership.registerOwnershipNoticeText', {
                               day: `${values.endDate.format(APP_LOCAL_DATE_FORMAT)}`,
                             })
@@ -719,7 +736,9 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                     user.walletAddress !== signerAddress ? (
                       <CFormGroup
                         row
-                        className={`border-top mb-2 ${modelType !== ModalType.OWNERSHIP_REGISTER ? 'd-none' : ''}`}
+                        className={`border-top mb-2 ${
+                          modelType !== ModalType.OWNERSHIP_REGISTER && !isOwnershipExpired ? 'd-none' : ''
+                        }`}
                       >
                         <CCol xs={12} className="mt-2">
                           <small className="text-warning">
@@ -734,7 +753,9 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                   ) : (
                     <CFormGroup
                       row
-                      className={`border-top mb-2 ${modelType !== ModalType.OWNERSHIP_REGISTER ? 'd-none' : ''}`}
+                      className={`border-top mb-2 ${
+                        modelType !== ModalType.OWNERSHIP_REGISTER && !isOwnershipExpired ? 'd-none' : ''
+                      }`}
                     >
                       <CCol xs={12} className="mt-2">
                         <small className="text-info">
@@ -745,7 +766,7 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                     </CFormGroup>
                   )}
 
-                  {isSellCommercial && modelType === ModalType.OWNERSHIP_REGISTER ? (
+                  {shouldDisplayUpdateBusinessPrice(CommercialTypes.SELL) ? (
                     <>
                       <CFormGroup row>
                         <CCol xs={12}>
@@ -896,7 +917,7 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                     ''
                   )}
 
-                  {isRentCommercial && modelType === ModalType.OWNERSHIP_REGISTER ? (
+                  {shouldDisplayUpdateBusinessPrice(CommercialTypes.RENT) ? (
                     <>
                       <CFormGroup row>
                         <CCol xs={12}>
