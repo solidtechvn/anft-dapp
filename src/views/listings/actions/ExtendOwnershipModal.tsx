@@ -43,6 +43,7 @@ import {
   getSecondDifftoEndDate,
   includeMultiple,
   insertCommas,
+  manualCaretPosition,
   moneyUnitTranslate,
   returnMaxEndDate,
   unInsertCommas,
@@ -536,7 +537,7 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
           }
         }}
       >
-        {({ values, errors, touched, setFieldValue, handleSubmit }) => (
+        {({ values, errors, touched, setFieldValue, handleSubmit, setFieldTouched }) => (
           <CForm onSubmit={handleSubmit}>
             <CModalBody>
               <CRow>
@@ -781,6 +782,7 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                             className="btn-radius-50"
                             type="text"
                             onChange={async (e: React.FormEvent<HTMLInputElement>) => {
+                              manualCaretPosition(e)
                               const priceStatus = checkPriceisGood(
                                 Number(unInsertCommas(e.currentTarget.value)),
                                 CommercialTypes.SELL
@@ -802,6 +804,7 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                               setFieldValue('sellPriceStatus', priceStatus);
                               setFieldValue('sellProfit', profit);
                               setFieldValue('sellRiskLevel', sellRiskLevel);
+                              setFieldTouched('sellPrice', true);
                             }}
                             value={insertCommas(values.sellPrice)}
                           />
@@ -809,7 +812,6 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                             {t('anftDapp.listingComponent.extendOwnership.exchange')}:{' '}
                             {renderAmount((values.sellPrice || 0) / ANFT_TO_VND_RATIO)} ANFT
                           </CFormText>
-
                           <CInvalidFeedback className={errors.sellPrice && touched.sellPrice ? 'd-block' : 'd-none'}>
                             {errors.sellPrice}
                           </CInvalidFeedback>
@@ -871,15 +873,15 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                           </p>
                         </CCol>
                       </CFormGroup>
-                      <CFormGroup row>
-                        <CCol xs={12}>
-                          <CLabel className="recharge-token-title">
-                            {t('anftDapp.listingComponent.extendOwnership.successRate')}:
-                          </CLabel>
-                        </CCol>
-                        <CCol xs={12}>
-                          {values.sellPrice && !errors.sellPrice && !errors.sellPrice ? (
-                            <>
+                      {values.sellPrice && !errors.sellPrice ? (
+                        <>
+                          <CFormGroup row>
+                            <CCol xs={12}>
+                              <CLabel className="recharge-token-title">
+                                {t('anftDapp.listingComponent.extendOwnership.successRate')}:
+                              </CLabel>
+                            </CCol>
+                            <CCol xs={12}>
                               <CProgress>
                                 <CProgressBar
                                   value={mappingSuccessRate[values.sellRiskLevel].value}
@@ -889,29 +891,27 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                               <small className={`text-${mappingSuccessRate[values.sellRiskLevel].color}`}>
                                 {mappingSuccessRate[values.sellRiskLevel].text}
                               </small>
-                            </>
-                          ) : (
-                            <CProgress>
-                              <CProgressBar value={0} color="secondary" />
-                            </CProgress>
-                          )}
-                        </CCol>
-                      </CFormGroup>
-                      <CFormGroup row>
-                        <CCol xs={4}>
-                          <CLabel className="recharge-token-title">
-                            {t('anftDapp.listingComponent.extendOwnership.profitRatio')}:
-                          </CLabel>
-                        </CCol>
-                        <CCol xs={8}>
-                          <p className="text-primary text-right m-0">
-                            {calculateProfitRatio(
-                              values.dateCount,
-                              returnProfitPreview(Number(values.sellProfit), values.dateCount, values.startDate)
-                            )}
-                          </p>
-                        </CCol>
-                      </CFormGroup>
+                            </CCol>
+                          </CFormGroup>
+                          <CFormGroup row>
+                            <CCol xs={4}>
+                              <CLabel className="recharge-token-title">
+                                {t('anftDapp.listingComponent.extendOwnership.profitRatio')}:
+                              </CLabel>
+                            </CCol>
+                            <CCol xs={8}>
+                              <p className="text-primary text-right m-0">
+                                {calculateProfitRatio(
+                                  values.dateCount,
+                                  returnProfitPreview(Number(values.sellProfit), values.dateCount, values.startDate)
+                                )}
+                              </p>
+                            </CCol>
+                          </CFormGroup>
+                        </>
+                      ) : (
+                        ''
+                      )}
                     </>
                   ) : (
                     ''
@@ -919,7 +919,7 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
 
                   {shouldDisplayUpdateBusinessPrice(CommercialTypes.RENT) ? (
                     <>
-                      <CFormGroup row>
+                      <CFormGroup row className={`border-top pt-2`}>
                         <CCol xs={12}>
                           <CLabel className="recharge-token-title">
                             {t(`anftDapp.listingComponent.extendOwnership.secondaryRent`)} (VND):
@@ -932,6 +932,7 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                             className="btn-radius-50"
                             type="text"
                             onChange={async (e: React.FormEvent<HTMLInputElement>) => {
+                              manualCaretPosition(e)
                               const priceStatus = checkPriceisGood(
                                 Number(unInsertCommas(e.currentTarget.value)),
                                 CommercialTypes.RENT
@@ -953,6 +954,7 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                               setFieldValue('rentPriceStatus', priceStatus);
                               setFieldValue('rentProfit', profit);
                               setFieldValue('rentRiskLevel', rentRiskLevel);
+                              setFieldTouched('rentPrice', true);
                             }}
                             value={insertCommas(values.rentPrice)}
                           />
@@ -960,7 +962,6 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                             {t('anftDapp.listingComponent.extendOwnership.exchange')}:{' '}
                             {renderAmount((values.rentPrice || 0) / ANFT_TO_VND_RATIO)} ANFT
                           </CFormText>
-
                           <CInvalidFeedback className={errors.rentPrice && touched.rentPrice ? 'd-block' : 'd-none'}>
                             {errors.rentPrice}
                           </CInvalidFeedback>
@@ -1019,16 +1020,15 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                           </p>
                         </CCol>
                       </CFormGroup>
-
-                      <CFormGroup row>
-                        <CCol xs={12}>
-                          <CLabel className="recharge-token-title">
-                            {t('anftDapp.listingComponent.extendOwnership.successRate')}:
-                          </CLabel>
-                        </CCol>
-                        <CCol xs={12}>
-                          {values.rentPrice && !errors.rentPrice && !errors.rentPrice ? (
-                            <>
+                      {values.rentPrice && !errors.rentPrice ? (
+                        <>
+                          <CFormGroup row>
+                            <CCol xs={12}>
+                              <CLabel className="recharge-token-title">
+                                {t('anftDapp.listingComponent.extendOwnership.successRate')}:
+                              </CLabel>
+                            </CCol>
+                            <CCol xs={12}>
                               <CProgress>
                                 <CProgressBar
                                   value={mappingSuccessRate[values.rentRiskLevel].value}
@@ -1038,29 +1038,27 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                               <small className={`text-${mappingSuccessRate[values.rentRiskLevel].color}`}>
                                 {mappingSuccessRate[values.rentRiskLevel].text}
                               </small>
-                            </>
-                          ) : (
-                            <CProgress>
-                              <CProgressBar value={0} color="secondary" />
-                            </CProgress>
-                          )}
-                        </CCol>
-                      </CFormGroup>
-                      <CFormGroup row>
-                        <CCol xs={4}>
-                          <CLabel className="recharge-token-title">
-                            {t('anftDapp.listingComponent.extendOwnership.profitRatio')}:
-                          </CLabel>
-                        </CCol>
-                        <CCol xs={8}>
-                          <p className="text-primary text-right m-0">
-                            {calculateProfitRatio(
-                              30,
-                              returnProfitPreview(Number(values.rentPrice), 30, values.startDate)
-                            )}
-                          </p>
-                        </CCol>
-                      </CFormGroup>
+                            </CCol>
+                          </CFormGroup>
+                          <CFormGroup row>
+                            <CCol xs={4}>
+                              <CLabel className="recharge-token-title">
+                                {t('anftDapp.listingComponent.extendOwnership.profitRatio')}:
+                              </CLabel>
+                            </CCol>
+                            <CCol xs={8}>
+                              <p className="text-primary text-right m-0">
+                                {calculateProfitRatio(
+                                  30,
+                                  returnProfitPreview(Number(values.rentPrice), 30, values.startDate)
+                                )}
+                              </p>
+                            </CCol>
+                          </CFormGroup>
+                        </>
+                      ) : (
+                        ''
+                      )}
                     </>
                   ) : (
                     ''
