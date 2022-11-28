@@ -104,23 +104,24 @@
           "ownershipAboutToExpire": "Quyền sở hữu chuẩn bị hết hạn. Tính từ thời điểm {{time}} BĐS có thể bị chiếm bởi người khác",
           "ownershipAbleToExtends": "Bạn có thể chiếm quyền sở hữu đối với BĐS này"
         },
-        "blockchainAddress": "Vi bằng Blockchain",
+        "blockchainAddress": "Chứng chỉ sở hữu",
         "currentOwner": "Chủ sở hữu",
         "ownershipPeriod": "Sở hữu tới",
         "dailyPayment": "Phí khai thác hằng ngày",
         "totalStake": "Tổng stake",
         "workersCount": "Số người khai khác",
+        "ownersCount": "Số CSC đã đầu tư",
         "workersList": "Xem quyền khai thác",
         "checkWorker": {
           "checkWorker": "Xác minh khai thác",
-          "workerAuthorized": "Vi bằng này đã được ủy quyền",
-          "workerNotAuthorized": "Vi bằng này chưa được ủy quyền",
+          "workerAuthorized": "Chứng chỉ này đã được ủy quyền",
+          "workerNotAuthorized": "Chứng chỉ này chưa được ủy quyền",
           "checkWorkerInfo": "BĐS này chưa có quyền khai thác nào"
         },
         "investmentActivities": {
           "investmentActivities": "Hoạt động đầu tư",
           "registerOwnership": "Chốt quyền sở hữu",
-          "registerClaimReward": "Đăng ký nhận thưởng"
+          "registerClaimReward": "Đăng ký cổ phần nhận thưởng"
         },
         "ownershipManagement": {
           "ownershipManagement": "Quản lý sở hữu",
@@ -292,7 +293,7 @@
       "copied": "Đã sao chép"
     },
     "searchContainer": {
-      "listingBlockChainAddress": "Vi bằng Blockchain BĐS",
+      "listingBlockChainAddress": "Chứng chỉ sở hữu BĐS",
       "time": "Thời gian"
     }
   }

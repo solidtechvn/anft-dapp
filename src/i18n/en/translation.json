@@ -110,6 +110,7 @@
         "dailyPayment": "Daily Payment",
         "totalStake": "Total Stake",
         "workersCount": "Workers Count",
+        "ownersCount": "Owners Count",
         "workersList": "Workers List",
         "checkWorker": {
           "checkWorker": "Check Worker",

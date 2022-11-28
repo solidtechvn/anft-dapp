@@ -362,10 +362,18 @@ const ListingInfo = (props: IListingInfoProps) => {
             )}
           </CCol>
 
-          <CCol xs={6}>
+          {/* <CCol xs={6}>
             <p className="detail-title-font my-2">{t('anftDapp.listingComponent.primaryInfo.workersCount')}</p>
             {!loadingWorkers && workers ? (
               <p className="my-2 value-text">{workers.count}</p>
+            ) : (
+              <InfoLoader width={155} height={27} />
+            )}
+          </CCol> */}
+          <CCol xs={6}>
+            <p className="detail-title-font my-2">{t('anftDapp.listingComponent.primaryInfo.ownersCount')}</p>
+            {!entityLoading && listing?.ownersCount ? (
+              <p className="my-2 value-text">{listing.ownersCount}</p>
             ) : (
               <InfoLoader width={155} height={27} />
             )}

@@ -52,4 +52,5 @@ export interface IAsset {
   maxPrice: number;
   minRentCost: number;
   maxRentCost: number;
+  ownersCount?: number;
 }
