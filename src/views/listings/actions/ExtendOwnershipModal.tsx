@@ -155,6 +155,11 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
     return viewerIsOwner && ownershipExpired;
   })();
 
+  const ownershipAboutToExpire = (function () {
+    if (!listing?.ownership) return false;
+    return checkOwnershipAboutToExpire(listing.ownership.toNumber());
+  })();
+
   const shouldDisplayUpdateBusinessPrice = (commercialType: CommercialTypes) => {
     const isRegisterModal = modelType === ModalType.OWNERSHIP_REGISTER;
     const isListingIncludesCommercialType =
@@ -713,7 +718,9 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                         {errors.dateCount}
                       </CInvalidFeedback>
                       <CFormText>
-                        {modelType === ModalType.OWNERSHIP_REGISTER || !listing?.ownership || isOwnershipExpired
+                        {(modelType === ModalType.OWNERSHIP_REGISTER && !ownershipAboutToExpire) ||
+                        !listing?.ownership ||
+                        isOwnershipExpired
                           ? t('anftDapp.listingComponent.extendOwnership.registerOwnershipNoticeText', {
                               day: `${values.endDate.format(APP_LOCAL_DATE_FORMAT)}`,
                             })
@@ -782,7 +789,7 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                             className="btn-radius-50"
                             type="text"
                             onChange={async (e: React.FormEvent<HTMLInputElement>) => {
-                              manualCaretPosition(e)
+                              manualCaretPosition(e);
                               const priceStatus = checkPriceisGood(
                                 Number(unInsertCommas(e.currentTarget.value)),
                                 CommercialTypes.SELL
@@ -932,7 +939,7 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                             className="btn-radius-50"
                             type="text"
                             onChange={async (e: React.FormEvent<HTMLInputElement>) => {
-                              manualCaretPosition(e)
+                              manualCaretPosition(e);
                               const priceStatus = checkPriceisGood(
                                 Number(unInsertCommas(e.currentTarget.value)),
                                 CommercialTypes.RENT

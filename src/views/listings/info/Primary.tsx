@@ -215,7 +215,7 @@ const ListingInfo = (props: IListingInfoProps) => {
   };
 
   const onWithdrawToken = () => {
-    if (ownershipExpired) return ToastError(t('anftDapp.listingComponent.withdrawToken.noMoreTokenToWithdraw'));
+    if (ownershipExpired) return;
     handleModalVisibility(ModalType.OWNERSHIP_WITHDRAW, true);
   };
 
