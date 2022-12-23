@@ -2,12 +2,13 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { pickBy } from 'lodash';
 import axios from '../../config/axios-interceptor';
 import { MANAGEMENT_SITE_URL } from '../../config/constants';
+import { ActiveStatus } from '../../shared/enumeration/activeStatus';
 import { IParams } from '../../shared/models/base.model';
 import { CategoryType, IListingType, INewListingType } from '../../shared/models/listingType.model';
 
 export interface IListingTypeFilter extends IParams {
   parent: CategoryType;
-  status: string;
+  status: ActiveStatus;
 }
 
 const prefix = 'listing-types';

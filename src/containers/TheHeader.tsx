@@ -31,6 +31,7 @@ import { TOKEN_INSTANCE } from '../shared/blockchain-helpers';
 import { formatBNToken, getEllipsisTxt, moneyUnitTranslate } from '../shared/casual-helpers';
 import { customStyles, mapAreaRange, mapFeeRange } from '../shared/components/FilterComponent';
 import { ToastError, ToastInfo } from '../shared/components/Toast';
+import { ActiveStatus } from '../shared/enumeration/activeStatus';
 import { CommercialTypes } from '../shared/enumeration/comercialType';
 import { Language } from '../shared/enumeration/language';
 import { Status } from '../shared/enumeration/status';
@@ -186,7 +187,7 @@ const TheHeader = () => {
         size: 100,
         sort: 'createdDate,desc',
         parent: CategoryType.PRODUCT,
-        status: 'ENABLE',
+        status: ActiveStatus.ENABLE,
       })
     );
     dispatch(getProvincesEntites({ country: 'VN' }));
