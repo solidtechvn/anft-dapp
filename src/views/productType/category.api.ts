@@ -7,6 +7,7 @@ import { CategoryType, IListingType, INewListingType } from '../../shared/models
 
 export interface IListingTypeFilter extends IParams {
   parent: CategoryType;
+  status: string;
 }
 
 const prefix = 'listing-types';

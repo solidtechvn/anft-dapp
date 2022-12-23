@@ -33,6 +33,7 @@ import { customStyles, mapAreaRange, mapFeeRange } from '../shared/components/Fi
 import { ToastError, ToastInfo } from '../shared/components/Toast';
 import { CommercialTypes } from '../shared/enumeration/comercialType';
 import { Language } from '../shared/enumeration/language';
+import { Status } from '../shared/enumeration/status';
 import { UnitRange, unitRangeArray } from '../shared/enumeration/unitRange';
 import useDeviceDetect from '../shared/hooks/useDeviceDetect';
 import { CategoryType } from '../shared/models/listingType.model';
@@ -185,6 +186,7 @@ const TheHeader = () => {
         size: 100,
         sort: 'createdDate,desc',
         parent: CategoryType.PRODUCT,
+        status: 'ENABLE',
       })
     );
     dispatch(getProvincesEntites({ country: 'VN' }));
