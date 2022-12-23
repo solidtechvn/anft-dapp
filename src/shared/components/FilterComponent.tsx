@@ -77,6 +77,11 @@ export const customStyles = {
     lineHeight: '19px',
     textAlign: 'left' as 'left',
   }),
+  control: (baseStyles: CSSObjectWithLabel) => ({
+    ...baseStyles,
+    borderRadius: '50px',
+    border: 'none',
+  }),
 };
 
 const FilterComponent = () => {

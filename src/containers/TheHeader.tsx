@@ -15,7 +15,7 @@ import {
   CLabel,
   CLink,
   CRow,
-  CTooltip,
+  CTooltip
 } from '@coreui/react';
 import { faInfoCircle, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -34,7 +34,6 @@ import { ToastError, ToastInfo } from '../shared/components/Toast';
 import { ActiveStatus } from '../shared/enumeration/activeStatus';
 import { CommercialTypes } from '../shared/enumeration/comercialType';
 import { Language } from '../shared/enumeration/language';
-import { Status } from '../shared/enumeration/status';
 import { UnitRange, unitRangeArray } from '../shared/enumeration/unitRange';
 import useDeviceDetect from '../shared/hooks/useDeviceDetect';
 import { CategoryType } from '../shared/models/listingType.model';
@@ -52,7 +51,7 @@ import {
   getContractWithSigner,
   getProviderLogin,
   getSigner,
-  getTokenBalance,
+  getTokenBalance
 } from '../views/wallet/wallet.api';
 import { resetSigner, softReset as walletSoftReset } from '../views/wallet/wallet.reducer';
 import { toggleSidebar } from './reducer';
