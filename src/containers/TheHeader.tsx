@@ -15,7 +15,7 @@ import {
   CLabel,
   CLink,
   CRow,
-  CTooltip
+  CTooltip,
 } from '@coreui/react';
 import { faInfoCircle, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -35,6 +35,7 @@ import { CommercialTypes } from '../shared/enumeration/comercialType';
 import { Language } from '../shared/enumeration/language';
 import { UnitRange, unitRangeArray } from '../shared/enumeration/unitRange';
 import useDeviceDetect from '../shared/hooks/useDeviceDetect';
+import { CategoryType } from '../shared/models/listingType.model';
 import { ISelectOption } from '../shared/models/selectOption.model';
 import { RootState } from '../shared/reducers';
 import { setFilterState as setStoredFilterState, softReset as assetsSoftReset } from '../views/assets/assets.reducer';
@@ -49,7 +50,7 @@ import {
   getContractWithSigner,
   getProviderLogin,
   getSigner,
-  getTokenBalance
+  getTokenBalance,
 } from '../views/wallet/wallet.api';
 import { resetSigner, softReset as walletSoftReset } from '../views/wallet/wallet.reducer';
 import { toggleSidebar } from './reducer';
@@ -178,7 +179,14 @@ const TheHeader = () => {
 
   useEffect(() => {
     dispatch(fetchingListingType());
-    dispatch(getListingTypes());
+    dispatch(
+      getListingTypes({
+        page: 0,
+        size: 100,
+        sort: 'createdDate,desc',
+        parent: CategoryType.PRODUCT,
+      })
+    );
     dispatch(getProvincesEntites({ country: 'VN' }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

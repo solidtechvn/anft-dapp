@@ -272,7 +272,7 @@ const ListingInfo = (props: IListingInfoProps) => {
 
           <CCol xs={12} className=" mb-3">
             {!entityLoading && listing?.ownership ? (
-              !isListingSold ? (
+              !isListingSold && listing.publicShow ? (
                 ownershipText(signerAddress, listing, t)
               ) : (
                 ''
@@ -442,7 +442,7 @@ const ListingInfo = (props: IListingInfoProps) => {
             <CButton
               className="px-3 w-100 btn-radius-50 btn-font-style btn btn-outline-primary"
               onClick={toggleCollapseVisibility(CollapseType.INVESTMENT)}
-              disabled={isListingSold}
+              disabled={isListingSold || !listing?.publicShow }
             >
               {t('anftDapp.listingComponent.primaryInfo.investmentActivities.investmentActivities')}
             </CButton>
@@ -480,7 +480,7 @@ const ListingInfo = (props: IListingInfoProps) => {
                 viewerIsOwner ? 'd-block' : 'd-none'
               }`}
               onClick={toggleCollapseVisibility(CollapseType.MANAGEMENT)}
-              disabled={isListingSold}
+              disabled={isListingSold || !listing?.publicShow}
             >
               {t('anftDapp.listingComponent.primaryInfo.ownershipManagement.ownershipManagement')}
             </CButton>
