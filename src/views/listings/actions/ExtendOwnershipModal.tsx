@@ -815,10 +815,10 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                             }}
                             value={insertCommas(values.sellPrice)}
                           />
-                          <CFormText>
+                          {/* <CFormText>
                             {t('anftDapp.listingComponent.extendOwnership.exchange')}:{' '}
                             {renderAmount((values.sellPrice || 0) / ANFT_TO_VND_RATIO)} ANFT
-                          </CFormText>
+                          </CFormText> */}
                           <CInvalidFeedback className={errors.sellPrice && touched.sellPrice ? 'd-block' : 'd-none'}>
                             {errors.sellPrice}
                           </CInvalidFeedback>
@@ -965,10 +965,10 @@ const ExtendOwnershipModal = (props: IExtendOwnershipModal) => {
                             }}
                             value={insertCommas(values.rentPrice)}
                           />
-                          <CFormText>
+                          {/* <CFormText>
                             {t('anftDapp.listingComponent.extendOwnership.exchange')}:{' '}
                             {renderAmount((values.rentPrice || 0) / ANFT_TO_VND_RATIO)} ANFT
-                          </CFormText>
+                          </CFormText> */}
                           <CInvalidFeedback className={errors.rentPrice && touched.rentPrice ? 'd-block' : 'd-none'}>
                             {errors.rentPrice}
                           </CInvalidFeedback>
